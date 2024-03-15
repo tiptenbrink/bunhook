@@ -27,11 +27,11 @@ const actionSchema = z.object({
 });
 
 Bun.serve({
-    port: 5176,
+    port: 5175,
     async fetch(req) {
         const url = new URL(req.url);
-        console.log({ req: { hide: { req } } });
         if (req.method === "POST" && url.pathname === "/hook") {
+            console.log("Received webhook event.")
             const j = await req.json();
             if (typeof j === "object" && j !== null && "workflow_job" in j) {
                 const workflowParse = actionSchema.safeParse(j);
