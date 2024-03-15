@@ -30,6 +30,7 @@ Bun.serve({
     port: 5175,
     async fetch(req) {
         const url = new URL(req.url);
+        console.log(url.href)
         if (req.method === "POST" && url.pathname === "/hook") {
             console.log("Received webhook event.")
             const j = await req.json();
@@ -42,6 +43,7 @@ Bun.serve({
                     return new Response();
                 }
                 const workflow = workflowParse.data.workflow_job;
+                console.log("Making request to GitHub API...")
 
                 // We do this in a then block so a response is immediately returned
                 octokit.rest.actions.getWorkflowRun({
@@ -49,6 +51,7 @@ Bun.serve({
                     owner: "simplymeals",
                     repo: "simplymeals",
                 }).then(async (run) => {
+                    console.log("Sucessfully queried GitHub.")
                     if (
                         run.data.pull_requests !== null &&
                         run.data.pull_requests.length > 0
