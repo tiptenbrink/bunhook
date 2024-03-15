@@ -2,6 +2,13 @@ import { $ } from "bun";
 import { Octokit } from "octokit";
 import { z } from "zod";
 
+const target_dir = process.env.TIDPLOY_DIRECTORY
+
+if (target_dir === undefined) {
+    console.log("Set TIDPLOY_DIRECTORY environment variable to the project you want to deploy!")
+    process.exit(1)
+}
+
 export const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
 const actionSchema = z.object({
@@ -32,25 +39,26 @@ Bun.serve({
                     !workflowParse.success ||
                     workflowParse.data.workflow_job.workflow_name !== "Docker Publish"
                 ) {
-                    console.log("Invalid workflow!");
                     return new Response();
                 }
                 const workflow = workflowParse.data.workflow_job;
-                const run = await octokit.rest.actions.getWorkflowRun({
+
+                // We do this in a then block so a response is immediately returned
+                octokit.rest.actions.getWorkflowRun({
                     run_id: workflow.run_id,
                     owner: "simplymeals",
                     repo: "simplymeals",
+                }).then(async (run) => {
+                    if (
+                        run.data.pull_requests !== null &&
+                        run.data.pull_requests.length > 0
+                    ) {
+                        const number = run.data.pull_requests[0].number;
+                        await $`SIMPLYMEALS_VERSION=pr-${number} tidploy deploy -d use/staging`.cwd(target_dir);
+                    } else if (run.data.head_branch === "main") {
+                        // do main stuff
+                    }
                 });
-
-                if (
-                    run.data.pull_requests !== null &&
-                    run.data.pull_requests.length > 0
-                ) {
-                    const number = run.data.pull_requests[0].number;
-                    await $`SIMPLYMEALS_VERSION=pr-${number} tidploy deploy -d use/staging`.cwd();
-                } else if (run.data.head_branch === "main") {
-                    // do main stuff
-                }
             }
         }
 
