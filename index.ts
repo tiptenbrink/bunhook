@@ -46,22 +46,22 @@ Bun.serve({
                 console.log("Making request to GitHub API...")
 
                 // We do this in a then block so a response is immediately returned
-                octokit.rest.actions.getWorkflowRun({
+                const run = await octokit.rest.actions.getWorkflowRun({
                     run_id: workflow.run_id,
                     owner: "simplymeals",
                     repo: "simplymeals",
-                }).then(async (run) => {
-                    console.log("Sucessfully queried GitHub.")
-                    if (
-                        run.data.pull_requests !== null &&
-                        run.data.pull_requests.length > 0
-                    ) {
-                        const number = run.data.pull_requests[0].number;
-                        await $`tidploy deploy -d use/staging`.cwd(target_dir).env({ ...process.env, SIMPLYMEALS_VERSION: `pr-${number}` });
-                    } else if (run.data.head_branch === "main") {
-                        // do main stuff
-                    }
                 });
+
+                console.log("Sucessfully queried GitHub.")
+                if (
+                    run.data.pull_requests !== null &&
+                    run.data.pull_requests.length > 0
+                ) {
+                    const number = run.data.pull_requests[0].number;
+                    await $`tidploy deploy -d use/staging`.cwd(target_dir).env({ ...process.env, SIMPLYMEALS_VERSION: `pr-${number}` });
+                } else if (run.data.head_branch === "main") {
+                    // do main stuff
+                }
             }
         }
 
