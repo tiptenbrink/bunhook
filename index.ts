@@ -57,7 +57,7 @@ Bun.serve({
                         run.data.pull_requests.length > 0
                     ) {
                         const number = run.data.pull_requests[0].number;
-                        await $`SIMPLYMEALS_VERSION=pr-${number} tidploy deploy -d use/staging`.cwd(target_dir);
+                        await $`tidploy deploy -d use/staging`.cwd(target_dir).env({ ...process.env, SIMPLYMEALS_VERSION: `pr-${number}` });
                     } else if (run.data.head_branch === "main") {
                         // do main stuff
                     }
