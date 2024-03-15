@@ -18,7 +18,7 @@ const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 const webhooks = new Webhooks({ secret: webhook_secret })
 
 webhooks.onAny(() => {
-    console.log("Received webhook!")
+    console.log("Received and verified webhook!")
 })
 
 webhooks.on("workflow_job.completed", async ({ payload }) => {
@@ -50,6 +50,7 @@ webhooks.on("pull_request.closed", async ({ payload }) => {
     const number = payload.number
 
     await $`docker compose -p simplymeals-pr-${number} down`;
+    await $`docker rmi registry.digitalocean.com/simplymeals/simplymeals:pr-${number}`
 });
 
 
@@ -59,7 +60,6 @@ Bun.serve({
         const url = new URL(req.url);
         console.log(url.href)
         if (req.method === "POST" && url.pathname === "/hook") {
-            console.log("Received webhook event.")
             const eventName = req.headers.get("x-github-event") ?? ''
             if (eventName !== 'pull_request' && eventName !== 'workflow_job') {
                 return new Response()
