@@ -14,8 +14,8 @@ bun run index.ts
 
 This project was created using `bun init` in bun v1.0.30. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
 
-## Run using PM2
+## Run using systemd
 
-This will start the process in the background.
+https://bun.sh/guides/ecosystem/systemd
 
-`pm2 start pm2.config.js`
+Be sure to add all required binaries to PATH: https://askubuntu.com/a/1014553 (add the Environment=PATH line)
