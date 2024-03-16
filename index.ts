@@ -15,7 +15,9 @@ if (webhook_secret === undefined) {
 }
 
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-const webhooks = new Webhooks({ secret: webhook_secret })
+const webhooks = new Webhooks({ secret: webhook_secret });
+
+const decoder = new TextDecoder()
 
 webhooks.onAny(() => {
     console.log("Received and verified webhook!")
@@ -40,7 +42,15 @@ webhooks.on("workflow_job.completed", async ({ payload }) => {
         run.data.pull_requests.length > 0
     ) {
         const number = run.data.pull_requests[0].number;
-        await $`tidploy deploy -d use/staging`.cwd(target_dir).env({ ...process.env, SIMPLYMEALS_VERSION: `pr-${number}` });
+        const deploy = Bun.spawn(["tidploy", "deploy", "-d", "use/staging"], {
+            cwd: target_dir,
+            env: { ...process.env, SIMPLYMEALS_VERSION: `pr-${number}` }
+        })
+
+        for await (const chunk of deploy.stdout) {
+            console.log(decoder.decode(chunk))
+        }
+
     } else if (run.data.head_branch === "main") {
         // do main stuff
     }
