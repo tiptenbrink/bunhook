@@ -42,6 +42,7 @@ webhooks.on("workflow_job.completed", async ({ payload }) => {
         run.data.pull_requests.length > 0
     ) {
         const number = run.data.pull_requests[0].number;
+        console.log(`Running tidploy for pr-${number}.`)
         const deploy = Bun.spawn(["tidploy", "deploy", "-d", "use/staging"], {
             cwd: target_dir,
             env: { ...process.env, SIMPLYMEALS_VERSION: `pr-${number}` }
