@@ -53,12 +53,15 @@ webhooks.on("pull_request.closed", async ({ payload }) => {
     await $`docker rmi registry.digitalocean.com/simplymeals/simplymeals:pr-${number}`
 });
 
+const port = 5175
+
+console.log(`Starting bunhook on port ${port}...`)
 
 Bun.serve({
-    port: 5175,
+    port,
     async fetch(req) {
         const url = new URL(req.url);
-        console.log(url.href)
+        console.log(`${req.method}: ${url.href}`)
         if (req.method === "POST" && url.pathname === "/hook") {
             const eventName = req.headers.get("x-github-event") ?? ''
             if (eventName !== 'pull_request' && eventName !== 'workflow_job') {
